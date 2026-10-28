@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTC Integrativa Kaizen Canarias - Evaluación Bioenergética</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js para visualización -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        element: {
+                            wood: '#15803d',
+                            woodLight: '#f0fdf4',
+                            fire: '#b91c1c',
+                            fireLight: '#fef2f2',
+                            earth: '#b45309',
+                            earthLight: '#fffbeb',
+                            metal: '#475569',
+                            metalLight: '#f8fafc',
+                            water: '#1d4ed8',
+                            waterLight: '#eff6ff',
+                        },
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; font-size: 11pt; }
+            .card-print { border: 1px solid #cbd5e1; page-break-inside: avoid; margin-bottom: 1rem; box-shadow: none !important; }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col font-sans antialiased">
+
+    <!-- Header Principal -->
+    <header class="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-900 text-white shadow-md sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
+                    <i data-lucide="activity" class="w-6 h-6 text-emerald-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide">MTC Integrativa Kaizen Canarias</h1>
+                    <p class="text-xs text-emerald-200/80 font-medium">Evaluación Bioenergética & Ficha Clínica</p>
+                </div>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="hidden md:flex items-center space-x-2 text-sm font-medium">
+                <button onclick="switchTab('patient')" id="nav-patient" class="tab-btn px-3.5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2 bg-white/15">
+                    <i data-lucide="user" class="w-4 h-4"></i> Datos Paciente
+                </button>
+                <button onclick="switchTab('questionnaire')" id="nav-questionnaire" class="tab-btn px-3.5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
+                    <i data-lucide="clipboard-list" class="w-4 h-4"></i> Cuestionario
+                </button>
+                <button onclick="switchTab('therapist')" id="nav-therapist" class="tab-btn px-3.5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2 text-amber-300 font-semibold">
+                    <i data-lucide="lock" class="w-4 h-4"></i> Área Terapeuta
+                </button>
+                <button onclick="switchTab('report')" id="nav-report" class="tab-btn px-3.5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2 hidden" id="nav-report-btn">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Informe & Prescripción
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="resetApp()" class="p-2 text-xs text-rose-200 hover:text-white hover:bg-rose-900/40 rounded-lg transition" title="Reiniciar Cuestionario">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+                <button onclick="triggerPrint()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow transition flex items-center gap-1.5">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Imprimir / PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab bar para móviles -->
+        <div class="md:hidden flex border-t border-white/10 bg-brand-900 text-xs overflow-x-auto custom-scrollbar">
+            <button onclick="switchTab('patient')" id="mob-nav-patient" class="flex-1 py-2.5 px-3 text-center font-medium border-b-2 border-emerald-400 text-emerald-300">1. Paciente</button>
+            <button onclick="switchTab('questionnaire')" id="mob-nav-questionnaire" class="flex-1 py-2.5 px-3 text-center font-medium border-b-2 border-transparent text-slate-300">2. Cuestionario</button>
+            <button onclick="switchTab('therapist')" id="mob-nav-therapist" class="flex-1 py-2.5 px-3 text-center font-medium border-b-2 border-transparent text-amber-300 flex items-center justify-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> 3. Terapeuta</button>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <!-- Banner Exclusivo de Impresión -->
+        <div class="hidden print-only text-center border-b pb-4 mb-6">
+            <h1 class="text-2xl font-bold text-slate-900">MTC Integrativa Kaizen Canarias</h1>
+            <p class="text-xs text-slate-600">Evaluación Bioenergética Integral & Plan Clínico Personalizado</p>
+        </div>
+
+        <!-- ==================== PESTAÑA 1: PACIENTE ==================== -->
+        <section id="tab-patient" class="tab-content block space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+                    <div class="p-2.5 bg-brand-50 text-brand-700 rounded-xl">
+                        <i data-lucide="user" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Datos de Identificación del Paciente</h2>
+                        <p class="text-xs text-slate-500">Formulario confidencial de registro clínico</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nombre Completo y Apellidos *</label>
+                        <input type="text" id="patient-name" oninput="saveLocalState()" placeholder="Ej. María García Hernández" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Fecha de Evaluación</label>
+                        <input type="date" id="patient-date" oninput="saveLocalState()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Edad</label>
+                        <input type="number" id="patient-age" oninput="saveLocalState()" placeholder="Ej. 42" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Sexo / Género</label>
+                        <select id="patient-sex" onchange="saveLocalState()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white">
+                            <option value="">Seleccionar...</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Teléfono Móvil / WhatsApp *</label>
+                        <input type="tel" id="patient-phone" oninput="saveLocalState()" placeholder="+34 600 000 000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+                    <div class="p-2.5 bg-amber-50 text-amber-700 rounded-xl">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Motivo Principal de Consulta</h2>
+                        <p class="text-xs text-slate-500">Describa las molestias principales que desea tratar</p>
+                    </div>
+                </div>
+
+                <div>
+                    <textarea id="patient-complaint" oninput="saveLocalState()" rows="4" placeholder="Describa detalladamente su dolencia principal, tiempo de evolución, qué factores la mejoran o empeoran..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end no-print">
+                <button onclick="switchTab('questionnaire')" class="bg-brand-700 hover:bg-brand-800 text-white font-semibold px-6 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+                    Ir al Cuestionario <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== PESTAÑA 2: CUESTIONARIO CIEGO (5 BLOQUES) ==================== -->
+        <section id="tab-questionnaire" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 card-print">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+                    <span>Progreso del Cuestionario</span>
+                    <span id="progress-text">0 de 50 preguntas respondidas</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-xl text-xs sm:text-sm leading-relaxed no-print">
+                <strong>Instrucciones para el paciente:</strong> Valore de 0 a 4 la frecuencia con la que ha experimentado cada síntoma durante los últimos tres meses.<br>
+                <div class="flex flex-wrap gap-2 mt-2 font-medium">
+                    <span class="bg-white px-2.5 py-1 rounded border border-amber-200">0 = Nunca</span>
+                    <span class="bg-white px-2.5 py-1 rounded border border-amber-200">1 = Raras veces</span>
+                    <span class="bg-white px-2.5 py-1 rounded border border-amber-200">2 = A veces</span>
+                    <span class="bg-white px-2.5 py-1 rounded border border-amber-200">3 = Con frecuencia</span>
+                    <span class="bg-white px-2.5 py-1 rounded border border-amber-200">4 = Siempre / Continuamente</span>
+                </div>
+            </div>
+
+            <!-- BLOQUE 1 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden card-print">
+                <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                    <h3 class="font-bold text-base tracking-wide">BLOQUE 1</h3>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">10 Ítems</span>
+                </div>
+                <div class="p-4 sm:p-6 space-y-4" id="block-1-container"></div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Anotaciones / Comentarios del paciente (Bloque 1):</label>
+                    <textarea id="notes-1" oninput="saveLocalState()" rows="2" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-slate-500" placeholder="Anotaciones adicionales sobre este bloque..."></textarea>
+                </div>
+            </div>
+
+            <!-- BLOQUE 2 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden card-print">
+                <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                    <h3 class="font-bold text-base tracking-wide">BLOQUE 2</h3>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">10 Ítems</span>
+                </div>
+                <div class="p-4 sm:p-6 space-y-4" id="block-2-container"></div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Anotaciones / Comentarios del paciente (Bloque 2):</label>
+                    <textarea id="notes-2" oninput="saveLocalState()" rows="2" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-slate-500" placeholder="Anotaciones adicionales sobre este bloque..."></textarea>
+                </div>
+            </div>
+
+            <!-- BLOQUE 3 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden card-print">
+                <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                    <h3 class="font-bold text-base tracking-wide">BLOQUE 3</h3>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">10 Ítems</span>
+                </div>
+                <div class="p-4 sm:p-6 space-y-4" id="block-3-container"></div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Anotaciones / Comentarios del paciente (Bloque 3):</label>
+                    <textarea id="notes-3" oninput="saveLocalState()" rows="2" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-slate-500" placeholder="Anotaciones adicionales sobre este bloque..."></textarea>
+                </div>
+            </div>
+
+            <!-- BLOQUE 4 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden card-print">
+                <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                    <h3 class="font-bold text-base tracking-wide">BLOQUE 4</h3>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">10 Ítems</span>
+                </div>
+                <div class="p-4 sm:p-6 space-y-4" id="block-4-container"></div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Anotaciones / Comentarios del paciente (Bloque 4):</label>
+                    <textarea id="notes-4" oninput="saveLocalState()" rows="2" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-slate-500" placeholder="Anotaciones adicionales sobre este bloque..."></textarea>
+                </div>
+            </div>
+
+            <!-- BLOQUE 5 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden card-print">
+                <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                    <h3 class="font-bold text-base tracking-wide">BLOQUE 5</h3>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">10 Ítems</span>
+                </div>
+                <div class="p-4 sm:p-6 space-y-4" id="block-5-container"></div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Anotaciones / Comentarios del paciente (Bloque 5):</label>
+                    <textarea id="notes-5" oninput="saveLocalState()" rows="2" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-slate-500" placeholder="Anotaciones adicionales sobre este bloque..."></textarea>
+                </div>
+            </div>
+
+            <!-- Confirmación final paciente -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center space-y-3 no-print">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-800">Cuestionario Finalizado</h3>
+                <p class="text-xs text-slate-600 max-w-md mx-auto">Sus datos y respuestas han sido guardados en el sistema. Puede enviar una notificación al terapeuta directamente por WhatsApp.</p>
+                <div class="flex items-center justify-center gap-3 pt-2">
+                    <button onclick="sendPatientWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> Enviar Cuestionario al Terapeuta por WhatsApp
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center no-print">
+                <button onclick="switchTab('patient')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-5 py-2 rounded-xl transition flex items-center gap-1.5 text-xs">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a Datos Paciente
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== PESTAÑA 3: ÁREA DEL TERAPEUTA (PROTEGIDA CON PIN 1234) ==================== -->
+        <section id="tab-therapist" class="tab-content hidden space-y-6">
+            
+            <!-- Lock Screen -->
+            <div id="auth-lock-screen" class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 text-center max-w-md mx-auto my-12 space-y-4">
+                <div class="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                    <i data-lucide="lock" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Área Exclusiva del Terapeuta</h3>
+                    <p class="text-xs text-slate-500 mt-1">Introduzca la clave de acceso para ver los resultados bioenergéticos, diagnósticos y estrategias terapéuticas.</p>
+                </div>
+
+                <form onsubmit="unlockTherapistArea(event)" class="space-y-3 pt-2">
+                    <div>
+                        <input type="password" id="therapist-password" maxlength="4" placeholder="PIN (1234)" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-xl text-center font-mono tracking-widest">
+                        <p id="auth-error-msg" class="text-xs text-rose-600 mt-1.5 font-semibold hidden">Clave incorrecta. Introduzca 1234.</p>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition text-sm shadow">
+                        Desbloquear Panel Clínico
+                    </button>
+                </form>
+            </div>
+
+            <!-- Área Protegida -->
+            <div id="therapist-protected-content" class="hidden space-y-6">
+                
+                <div class="bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between shadow-sm no-print">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                            <i data-lucide="unlock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-base">EVALUACIÓN BIOENERGÉTICA MTC (5 ELEMENTOS)</h2>
+                            <p class="text-xs text-slate-400">Acceso Profesional Autorizado</p>
+                        </div>
+                    </div>
+                    <button onclick="lockTherapistArea()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-slate-300 transition">
+                        Bloquear
+                    </button>
+                </div>
+
+                <!-- Resumen Puntuaciones 5 Elementos -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 card-print">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Puntuación Total y Nivel de Afección por Elemento MTC</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <div class="bg-element-woodLight border border-element-wood/30 p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold text-element-wood block uppercase">Madera (H/VB)</span>
+                            <span id="score-wood" class="text-xl font-black text-slate-800">0 / 40</span>
+                            <span id="level-wood" class="text-[10px] font-bold block px-2 py-0.5 rounded-full bg-white mt-1 text-slate-600">Normal</span>
+                        </div>
+                        <div class="bg-element-fireLight border border-element-fire/30 p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold text-element-fire block uppercase">Fuego (C/ID)</span>
+                            <span id="score-fire" class="text-xl font-black text-slate-800">0 / 40</span>
+                            <span id="level-fire" class="text-[10px] font-bold block px-2 py-0.5 rounded-full bg-white mt-1 text-slate-600">Normal</span>
+                        </div>
+                        <div class="bg-element-earthLight border border-element-earth/30 p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold text-element-earth block uppercase">Tierra (B/E)</span>
+                            <span id="score-earth" class="text-xl font-black text-slate-800">0 / 40</span>
+                            <span id="level-earth" class="text-[10px] font-bold block px-2 py-0.5 rounded-full bg-white mt-1 text-slate-600">Normal</span>
+                        </div>
+                        <div class="bg-element-metalLight border border-element-metal/30 p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold text-element-metal block uppercase">Metal (P/IG)</span>
+                            <span id="score-metal" class="text-xl font-black text-slate-800">0 / 40</span>
+                            <span id="level-metal" class="text-[10px] font-bold block px-2 py-0.5 rounded-full bg-white mt-1 text-slate-600">Normal</span>
+                        </div>
+                        <div class="bg-element-waterLight border border-element-water/30 p-3 rounded-xl text-center col-span-2 sm:col-span-1">
+                            <span class="text-xs font-bold text-element-water block uppercase">Agua (R/V)</span>
+                            <span id="score-water" class="text-xl font-black text-slate-800">0 / 40</span>
+                            <span id="level-water" class="text-[10px] font-bold block px-2 py-0.5 rounded-full bg-white mt-1 text-slate-600">Normal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matriz de Corrección Dinámica -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-brand-700"></i>
+                        1. Matriz de Corrección e Impacto Orgánico
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-b">
+                                    <th class="p-3 font-semibold">Bloque Cuestionario</th>
+                                    <th class="p-3 font-semibold">Elemento MTC</th>
+                                    <th class="p-3 font-semibold">Órgano / Víscera</th>
+                                    <th class="p-3 font-semibold text-center">Puntuación</th>
+                                    <th class="p-3 font-semibold">Grado de Afección</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="therapist-matrix-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diagnóstico por Lengua (She Zhen) -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2">
+                        <i data-lucide="eye" class="w-5 h-5 text-brand-700"></i>
+                        2. Diagnóstico Diferencial Lingual (She Zhen)
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="tongue-diagnosis-container"></div>
+                </div>
+
+                <!-- Acupuntura y Puntos Clave -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2">
+                        <i data-lucide="crosshair" class="w-5 h-5 text-brand-700"></i>
+                        3. Estrategias Terapéuticas y Acupuntura / Presión
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="acupuncture-container"></div>
+                </div>
+
+                <!-- Fitoterapia y Nutracéuticos -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                    <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2">
+                        <i data-lucide="pill" class="w-5 h-5 text-brand-700"></i>
+                        4. Suplementación Integrativa, Fitoterapia MTC y Ortomolecular
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="phytotherapy-container"></div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('questionnaire')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-5 py-2 rounded-xl transition text-xs">
+                        Volver al Cuestionario
+                    </button>
+                    <button onclick="switchTab('report')" class="bg-brand-700 hover:bg-brand-800 text-white font-semibold px-6 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-xs">
+                        Ver Informe & Prescripción <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== PESTAÑA 4: INFORME Y PRESCRIPCIÓN ==================== -->
+        <section id="tab-report" class="tab-content hidden space-y-6">
+
+            <!-- Banner Superior de Acciones -->
+            <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 no-print">
+                <div>
+                    <h2 class="text-lg font-bold flex items-center gap-2">
+                        <i data-lucide="send" class="w-5 h-5 text-emerald-400"></i>
+                        Emisión de Informe y Plan Clínico
+                    </h2>
+                    <p class="text-xs text-slate-300">Envíe las pautas al paciente por WhatsApp o genere una copia en PDF para imprimir.</p>
+                </div>
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <button onclick="sendTherapistWhatsApp()" class="flex-1 md:flex-none bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow text-xs">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> WhatsApp Paciente
+                    </button>
+                    <button onclick="triggerPrint()" class="flex-1 md:flex-none bg-white text-slate-800 hover:bg-slate-100 font-semibold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow text-xs">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Campos de Prescripción -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print">
+                <h3 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-5 h-5 text-brand-700"></i>
+                    Prescripción Personalizada del Terapeuta
+                </h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pautas Dietéticas y Estilo de Vida Recomendadas</label>
+                        <textarea id="rx-diet" oninput="saveLocalState()" rows="3" placeholder="Ej. Dieta templada, evitar alimentos crudos/fríos, infusiones de jengibre..." class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Suplementación, Fitoterapia y Posología</label>
+                        <textarea id="rx-supplements" oninput="saveLocalState()" rows="3" placeholder="Ej. Xiao Yao San (8 píldoras / 8 horas), Citrato de Magnesio (300mg/día)..." class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Próxima Cita / Seguimiento</label>
+                        <input type="text" id="rx-followup" oninput="saveLocalState()" placeholder="Ej. En 15 días" class="w-full p-3 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Previa Informe Imprimible -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 card-print space-y-6">
+                <div class="border-b pb-4 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">INFORME CLÍNICO Y PLAN DE TRATAMIENTO</h2>
+                        <p class="text-xs text-slate-500">MTC Integrativa Kaizen Canarias</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-500">
+                        <p id="rep-date-display">Fecha: --</p>
+                        <p>Ref: #MTC-KAIZEN-01</p>
+                    </div>
+                </div>
+
+                <!-- Resumen Paciente -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl text-xs">
+                    <div><span class="text-slate-400 block font-medium">Paciente:</span><strong id="rep-patient-name" class="text-slate-800 text-sm">--</strong></div>
+                    <div><span class="text-slate-400 block font-medium">Edad / Sexo:</span><strong id="rep-patient-age-sex" class="text-slate-800 text-sm">--</strong></div>
+                    <div><span class="text-slate-400 block font-medium">Teléfono:</span><strong id="rep-patient-phone" class="text-slate-800 text-sm">--</strong></div>
+                    <div><span class="text-slate-400 block font-medium">Estado:</span><strong class="text-emerald-700 text-sm">Evaluado</strong></div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-slate-500 mb-1">Motivo Principal de Consulta</h4>
+                    <p id="rep-complaint" class="text-sm bg-slate-50 p-3 rounded-lg italic text-slate-700">Sin registrar.</p>
+                </div>
+
+                <!-- Puntuaciones resumidas -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Evaluación por Bloques y Elementos</h4>
+                    <div class="grid grid-cols-5 gap-2 text-center text-xs" id="rep-scores-grid"></div>
+                </div>
+
+                <!-- Firmas -->
+                <div class="pt-12 grid grid-cols-2 gap-8 border-t border-slate-200 text-center text-xs text-slate-500">
+                    <div>
+                        <div class="border-b border-slate-300 w-3/4 mx-auto mb-2"></div>
+                        <p class="font-medium">Firma del Paciente</p>
+                    </div>
+                    <div>
+                        <div class="border-b border-slate-300 w-3/4 mx-auto mb-2"></div>
+                        <p class="font-medium">Firma / Sello del Terapeuta</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto no-print">
+        <p>MTC Integrativa Kaizen Canarias • Software de Evaluación Bioenergética</p>
+    </footer>
+
+    <!-- LÓGICA DE LA APLICACIÓN -->
+    <script>
+        const AUTH_PIN = '1234';
+        let isAuthenticated = false;
+
+        // Estructura de las 50 preguntas completas (10 por Bloque)
+        const QUESTIONNAIRE_DATA = {
+            1: {
+                key: 'wood',
+                blockName: 'Bloque 1',
+                elementName: 'Madera',
+                organ: 'Hígado / Vesícula Biliar',
+                color: 'element-wood',
+                lightBg: 'bg-element-woodLight',
+                questions: [
+                    "Tensión, rigidez o dolor muscular recurrente en cuello y hombros",
+                    "Cefaleas, dolor de cabeza pulsátil o migrañas (especialmente en sienes)",
+                    "Ojos secos, irritados, rojos o molestia con la luz intensa",
+                    "Digestiones lentas con hinchazón o distensión abdominal importante",
+                    "Tendencia a sufrir espasmos, calambres musculares o contracturas",
+                    "Sensación de sabor amargo en la boca al levantarse por las mañanas",
+                    "Irritabilidad, arrebatos de frustración o enfado con relativa facilidad",
+                    "Sensación de opresión en los costados o nudo en la garganta",
+                    "Trastornos menstruales (síndrome premenstrual intenso, coágulos o dolor)",
+                    "Uñas frágiles, quebradizas o con estrías marcadas"
+                ],
+                tongueSigns: ["Bordes rojos o violáceos", "Marcas de dientes en bordes laterales", "Lengua rígida, desviada o tensa"],
+                syndromes: "Estancamiento de Qi de Hígado / Fuego de Hígado",
+                strategy: "Drenar Hígado, regular el Qi, calmar la mente y liberar diafragma",
+                points: "H3 (Taichong), VB34 (Yanglingquan), H14 (Qimen), VB20 (Fengchi), PC6",
+                formulaMTC: "Xiao Yao San o Chai Hu Shu Gan San",
+                phytotherapy: "Cardo Mariano (Silimarina), Diente de León, Alcachofa, Cúrcuma",
+                nutraceuticals: "Magnesio Citrato/Bisglicinato, Complejo B (B6/B12), SAMe"
+            },
+            2: {
+                key: 'fire',
+                blockName: 'Bloque 2',
+                elementName: 'Fuego',
+                organ: 'Corazón / Intestino Delgado',
+                color: 'element-fire',
+                lightBg: 'bg-element-fireLight',
+                questions: [
+                    "Palpitaciones, taquicardias o aceleración repentina del ritmo cardíaco",
+                    "Dificultad para conciliar el sueño (tardando bastante en dormirse)",
+                    "Sueño muy agitado, interrumpido o con pesadillas frecuentes",
+                    "Facilidad para que el rostro se enrojezca con el calor o la emoción",
+                    "Sensación de calor en las palmas de las manos o sudoración nocturna",
+                    "Ansiedad, inquietud interior o incapacidad para mantener la calma",
+                    "Aftas, llagas o inflamación frecuente en la lengua o mucosas bucales",
+                    "Despistes repentinos, fallos de memoria reciente o falta de concentración",
+                    "Cambios emocionales bruscos (pasar de la euforia a la tristeza rápida)",
+                    "Tendencia a hablar muy rápido o de forma acelerada bajo tensión"
+                ],
+                tongueSigns: ["Punta de la lengua muy roja o con puntos rojos", "Aftas dolorosas en la punta", "Grieta central profunda hasta la punta"],
+                syndromes: "Fuego de Corazón / Deficiencia de Yin de Corazón",
+                strategy: "Calmar el Shen (mente), nutrir Yin de Corazón y dispersar Fuego",
+                points: "C7 (Shenmen), PC6 (Neiguan), Ren17 (Danzhong), V15 (Xinshu), R6",
+                formulaMTC: "Tian Wang Bu Xin Dan o Suan Zao Ren Tang",
+                phytotherapy: "Pasiflora, Espino Blanco, Amapola de California",
+                nutraceuticals: "Coenzima Q10, L-Teanina / L-Triptófano, Omega 3 (DHA/EPA)"
+            },
+            3: {
+                key: 'earth',
+                blockName: 'Bloque 3',
+                elementName: 'Tierra',
+                organ: 'Bazo / Estómago',
+                color: 'element-earth',
+                lightBg: 'bg-element-earthLight',
+                questions: [
+                    "Cansancio acusado o pesadez física tras la comida principal",
+                    "Deseos intensos de consumir azúcares, dulces o harinas refinadas",
+                    "Heces blandas, deshechas o evacuaciones con tendencia a la diarrea",
+                    "Sensación de pesadez en las piernas, hinchazón de tobillos o retención",
+                    "Facilidad para la aparición de hematomas o moratones ante leves roces",
+                    "Pensamientos obsesivos, darle vueltas a las cosas o rumiación mental",
+                    "Preocupación excesiva por acontecimientos futuros o por los demás",
+                    "Sensación de obnubilación, embotamiento o mente poco despejada",
+                    "Ardor de estómago, reflujo ácido o pesadez gástrica",
+                    "Labios secos, pálidos, agrietados o con comisuras inflamadas"
+                ],
+                tongueSigns: ["Lengua pálida, hinchada o muescas dentales frontales", "Saburra espesa, blanca o grasienta en el centro", "Grietas transversales en el cuerpo lingual"],
+                syndromes: "Deficiencia de Qi de Bazo / Tan-Humedad Central",
+                strategy: "Tonificar Qi de Bazo, fortalecer Estómago y transformar Humedad",
+                points: "E36 (Zusanli), BP6 (Sanyinjiao), Ren12 (Zhongwan), V20 (Pishu), BP9",
+                formulaMTC: "Shen Ling Bai Zhu San o Liu Jun Zi Tang",
+                phytotherapy: "Jengibre, Manzanilla amarga, Hinojo, Menta piperita",
+                nutraceuticals: "Enzimas digestivas de amplio espectro, Probióticos específicos, L-Glutamina"
+            },
+            4: {
+                key: 'metal',
+                blockName: 'Bloque 4',
+                elementName: 'Metal',
+                organ: 'Pulmón / Intestino Grueso',
+                color: 'element-metal',
+                lightBg: 'bg-element-metalLight',
+                questions: [
+                    "Tendencia a resfriarse con frecuencia, defensas bajas o alergias",
+                    "Sensación de respiración corta, falta de aire o cansancio al hablar",
+                    "Piel muy seca, áspera, con descamación o problemas cutáneos",
+                    "Estreñimiento, evacuaciones secas o dificultad para defecar",
+                    "Mucha sensibilidad al frío, al viento o a las corrientes de aire",
+                    "Tendencia a la tristeza, melancolía o nostalgia profunda",
+                    "Dificultad para soltar situaciones del pasado o desprenderse de objetos",
+                    "Excesiva autoexigencia, perfeccionismo o rigidez con las normas",
+                    "Tos seca persistente, congestión nasal o mucosidad frecuente",
+                    "Voz débil o cansancio fácil en la garganta al hablar"
+                ],
+                tongueSigns: ["Lengua pálida y delgada en el tercio anterior", "Saburra fina blanca o ausencia de saburra en zona Pulmón", "Grietas finas en el tercio superior"],
+                syndromes: "Deficiencia de Qi/Yin de Pulmón y Sequedad",
+                strategy: "Tonificar Qi de Pulmón, consolidar Wei Qi (defensivo) e hidratar",
+                points: "P7 (Lieque), IG4 (Hegu), V13 (Feishu), P9, E36",
+                formulaMTC: "Yu Ping Feng San o Mai Men Dong Tang",
+                phytotherapy: "Astrágalo, Llantén, Tomillo, Equinácea, Reishi",
+                nutraceuticals: "Vitamina C con bioflavonoides, Vitamina D3+K2, Zinc Picolinato, NAC"
+            },
+            5: {
+                key: 'water',
+                blockName: 'Bloque 5',
+                elementName: 'Agua',
+                organ: 'Riñón / Vejiga',
+                color: 'element-water',
+                lightBg: 'bg-element-waterLight',
+                questions: [
+                    "Dolor, cansancio sordo o debilidad en la zona lumbar o sacra",
+                    "Debilidad, crujidos o sobrecarga en rodillas o tobillos",
+                    "Sensación habitual de pies y manos frías o intolerancia al frío",
+                    "Necesidad de levantarse a orinar durante la noche varias veces",
+                    "Agotamiento profundo, cansancio vital o sensación de agotamiento total",
+                    "Zumbidos o pitidos en los oídos (acúfenos) o bajada de audición",
+                    "Sensación de temor, inseguridad profunda o ataques de pánico",
+                    "Falta de fuerza de voluntad, pérdida de empuje o iniciativa personal",
+                    "Caída de cabello acelerada, canas prematuras o fragilidad dental",
+                    "Disminución importante en la líbido o vitalidad general"
+                ],
+                tongueSigns: ["Lengua pálida, hinchada y húmeda/resbaladiza (Def. Yang)", "Lengua roja, pelada y agrietada en la raíz sin saburra (Def. Yin)"],
+                syndromes: "Deficiencia de Yang o Yin de Riñón / Agotamiento Jing",
+                strategy: "Tonificar Jing/Yang de Riñón, nutrir Yin y consolidar raíz",
+                points: "R3 (Taixi), R6 (Zhaohai), V23 (Shenshu), Ren4 (Guanyuan), Du4 (Mingmen)",
+                formulaMTC: "Liu Wei Di Huang Wan (Yin) o Jin Gui Shen Qi Wan (Yang)",
+                phytotherapy: "Ashwagandha, Rhodiola rosea, Eleuterococo, Maca",
+                nutraceuticals: "Omega 3 DHA, Selenio + Magnesio Marino, CoQ10, Cordyceps"
+            }
+        };
+
+        // Estado global
+        let appState = {
+            scores: { 1: Array(10).fill(0), 2: Array(10).fill(0), 3: Array(10).fill(0), 4: Array(10).fill(0), 5: Array(10).fill(0) },
+            notes: { 1: '', 2: '', 3: '', 4: '', 5: '' },
+            rx: { diet: '', supplements: '', followup: '' }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderAllQuestions();
+            renderTherapistDashboard();
+            loadLocalState();
+        });
+
+        // Cambio de pestañas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-white/15'));
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) activeBtn.classList.add('bg-white/15');
+
+            if (tabId === 'report') {
+                updateReportView();
+            }
+        }
+
+        // Renderizado del cuestionario ciego
+        function renderAllQuestions() {
+            for (let b = 1; b <= 5; b++) {
+                const container = document.getElementById(`block-${b}-container`);
+                if (!container) continue;
+
+                let html = '<div class="space-y-3">';
+                QUESTIONNAIRE_DATA[b].questions.forEach((qText, idx) => {
+                    html += `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition border border-slate-100 gap-2">
+                            <span class="text-xs sm:text-sm text-slate-700 font-medium flex-1">${idx + 1}. ${qText}</span>
+                            <div class="flex items-center space-x-1 sm:space-x-2 self-end sm:self-center">
+                                ${[0, 1, 2, 3, 4].map(val => `
+                                    <label class="cursor-pointer text-center">
+                                        <input type="radio" name="q-${b}-${idx}" value="${val}" ${val===0?'checked':''} onchange="setScore(${b}, ${idx}, ${val})" class="peer hidden">
+                                        <span class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg border border-slate-200 text-slate-600 peer-checked:bg-slate-900 peer-checked:text-white peer-checked:border-slate-900 hover:border-slate-400 transition shadow-sm">
+                                            ${val}
+                                        </span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            }
+        }
+
+        function setScore(blockNum, qIdx, val) {
+            appState.scores[blockNum][qIdx] = parseInt(val);
+            updateProgressBar();
+            updateCalculations();
+            saveLocalState();
+        }
+
+        function updateProgressBar() {
+            let total = 0;
+            for (let b = 1; b <= 5; b++) {
+                total += appState.scores[b].filter(v => v !== undefined).length;
+            }
+            document.getElementById('progress-text').innerText = `${total} de 50 preguntas respondidas`;
+            document.getElementById('progress-bar').style.width = `${(total / 50) * 100}%`;
+        }
+
+        // Autenticación Terapeuta
+        function unlockTherapistArea(e) {
+            if (e) e.preventDefault();
+            const pass = document.getElementById('therapist-password').value;
+            if (pass === AUTH_PIN) {
+                isAuthenticated = true;
+                document.getElementById('auth-lock-screen').classList.add('hidden');
+                document.getElementById('therapist-protected-content').classList.remove('hidden');
+                document.getElementById('nav-report-btn').classList.remove('hidden');
+                document.getElementById('auth-error-msg').classList.add('hidden');
+                updateCalculations();
+            } else {
+                document.getElementById('auth-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function lockTherapistArea() {
+            isAuthenticated = false;
+            document.getElementById('auth-lock-screen').classList.remove('hidden');
+            document.getElementById('therapist-protected-content').classList.add('hidden');
+            document.getElementById('nav-report-btn').classList.add('hidden');
+            document.getElementById('therapist-password').value = '';
+        }
+
+        function triggerPrint() {
+            if (!isAuthenticated) {
+                switchTab('therapist');
+            } else {
+                window.print();
+            }
+        }
+
+        // Diagnóstico y Matriz para el Terapeuta
+        function renderTherapistDashboard() {
+            // Lengua
+            const tongueCont = document.getElementById('tongue-diagnosis-container');
+            let tongueHtml = '';
+            for (let b = 1; b <= 5; b++) {
+                const item = QUESTIONNAIRE_DATA[b];
+                tongueHtml += `
+                    <div class="p-4 rounded-xl border border-slate-200 ${item.lightBg}">
+                        <h4 class="font-bold text-sm text-slate-800 mb-1 flex items-center gap-1.5">
+                            ${item.blockName}: ${item.elementName} (${item.organ})
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mb-2 italic">${item.syndromes}</p>
+                        <div class="space-y-1.5">
+                            ${item.tongueSigns.map((sign, idx) => `
+                                <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                                    <input type="checkbox" id="tongue-${b}-${idx}" onchange="saveLocalState()" class="mt-0.5 rounded text-brand-700">
+                                    <span>${sign}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            tongueCont.innerHTML = tongueHtml;
+
+            // Acupuntura
+            const acuCont = document.getElementById('acupuncture-container');
+            let acuHtml = '';
+            for (let b = 1; b <= 5; b++) {
+                const item = QUESTIONNAIRE_DATA[b];
+                acuHtml += `
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                        <span class="font-bold text-xs uppercase tracking-wider text-slate-800 block mb-1">${item.blockName} (${item.elementName}) - ${item.organ}</span>
+                        <p class="text-xs text-slate-600 mb-2"><strong>Estrategia:</strong> ${item.strategy}</p>
+                        <p class="text-xs text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-100"><strong>Puntos Clave:</strong> ${item.points}</p>
+                    </div>
+                `;
+            }
+            acuCont.innerHTML = acuHtml;
+
+            // Fitoterapia
+            const phytoCont = document.getElementById('phytotherapy-container');
+            let phytoHtml = '';
+            for (let b = 1; b <= 5; b++) {
+                const item = QUESTIONNAIRE_DATA[b];
+                phytoHtml += `
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
+                        <h5 class="font-bold text-sm text-slate-800 border-b pb-1 mb-1">${item.blockName}: ${item.elementName}</h5>
+                        <p><strong class="text-slate-700">Fórmula MTC:</strong> <span class="text-slate-600">${item.formulaMTC}</span></p>
+                        <p><strong class="text-slate-700">Fitoterapia Occidental:</strong> <span class="text-slate-600">${item.phytotherapy}</span></p>
+                        <p><strong class="text-slate-700">Nutracéuticos:</strong> <span class="text-slate-600">${item.nutraceuticals}</span></p>
+                    </div>
+                `;
+            }
+            phytoCont.innerHTML = phytoHtml;
+        }
+
+        function getLevelInfo(score) {
+            if (score <= 10) return { label: 'Normal', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+            if (score <= 20) return { label: 'Leve', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+            if (score <= 30) return { label: 'Moderado', color: 'bg-amber-100 text-amber-800 border-amber-200' };
+            return { label: 'Severo', color: 'bg-rose-100 text-rose-800 border-rose-200' };
+        }
+
+        function updateCalculations() {
+            let matrixBody = '';
+            let reportScoresHtml = '';
+
+            for (let b = 1; b <= 5; b++) {
+                const item = QUESTIONNAIRE_DATA[b];
+                const sum = appState.scores[b].reduce((acc, curr) => acc + curr, 0);
+                const lvl = getLevelInfo(sum);
+
+                const scoreEl = document.getElementById(`score-${item.key}`);
+                const levelEl = document.getElementById(`level-${item.key}`);
+                if (scoreEl) scoreEl.innerText = `${sum} / 40`;
+                if (levelEl) {
+                    levelEl.innerText = lvl.label;
+                    levelEl.className = `text-[10px] font-bold block px-2 py-0.5 rounded-full mt-1 ${lvl.color}`;
+                }
+
+                matrixBody += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-semibold text-slate-800">${item.blockName}</td>
+                        <td class="p-3 font-bold text-slate-700">${item.elementName}</td>
+                        <td class="p-3 text-slate-600 text-xs">${item.organ}</td>
+                        <td class="p-3 text-center font-bold text-sm">${sum} / 40</td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${lvl.color}">${lvl.label}</span>
+                        </td>
+                    </tr>
+                `;
+
+                reportScoresHtml += `
+                    <div class="p-2.5 bg-slate-50 border rounded-xl">
+                        <span class="font-bold block text-slate-700 text-xs">${item.blockName} (${item.elementName})</span>
+                        <span class="text-sm font-black text-slate-900">${sum} pts</span>
+                        <span class="block text-[10px] font-semibold mt-0.5 ${lvl.label==='Severo'?'text-rose-600':lvl.label==='Moderado'?'text-amber-600':'text-emerald-600'}">${lvl.label}</span>
+                    </div>
+                `;
+            }
+
+            const tBody = document.getElementById('therapist-matrix-body');
+            if (tBody) tBody.innerHTML = matrixBody;
+
+            const repGrid = document.getElementById('rep-scores-grid');
+            if (repGrid) repGrid.innerHTML = reportScoresHtml;
+        }
+
+        function updateReportView() {
+            const name = document.getElementById('patient-name').value || 'Sin registrar';
+            const age = document.getElementById('patient-age').value || '--';
+            const sex = document.getElementById('patient-sex').value || '--';
+            const phone = document.getElementById('patient-phone').value || '--';
+            const date = document.getElementById('patient-date').value || new Date().toISOString().split('T')[0];
+            const complaint = document.getElementById('patient-complaint').value || 'Sin especificar.';
+
+            document.getElementById('rep-patient-name').innerText = name;
+            document.getElementById('rep-patient-age-sex').innerText = `${age} años / ${sex}`;
+            document.getElementById('rep-patient-phone').innerText = phone;
+            document.getElementById('rep-date-display').innerText = `Fecha: ${date}`;
+            document.getElementById('rep-complaint').innerText = complaint;
+        }
+
+        // Integración WhatsApp
+        function sendPatientWhatsApp() {
+            const name = document.getElementById('patient-name').value || 'Paciente';
+            const date = document.getElementById('patient-date').value || new Date().toISOString().split('T')[0];
+            
+            let text = `*CUESTIONARIO COMPLETADO - MTC INTEGRATIVA KAIZEN CANARIAS*\n`;
+            text += `-----------------------------------------------\n`;
+            text += `👤 *Paciente:* ${name}\n`;
+            text += `📅 *Fecha:* ${date}\n\n`;
+            text += `He completado las 50 preguntas de la valoración por bloques. Quedo a la espera de la consulta.`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function sendTherapistWhatsApp() {
+            const name = document.getElementById('patient-name').value || 'Paciente';
+            const phone = document.getElementById('patient-phone').value.replace(/[^0-9]/g, '');
+            const diet = document.getElementById('rx-diet').value || 'Según lo indicado en consulta.';
+            const supplements = document.getElementById('rx-supplements').value || 'Sin prescripción suplementaria.';
+            const followup = document.getElementById('rx-followup').value || 'En 15 días.';
+
+            let text = `*PLAN DE TRATAMIENTO - MTC INTEGRATIVA KAIZEN CANARIAS*\n`;
+            text += `-----------------------------------------------\n`;
+            text += `Estimado/a *${name}*, adjuntamos el resumen de sus pautas:\n\n`;
+            text += `🥗 *Pautas Dietéticas y Estilo de Vida:*\n${diet}\n\n`;
+            text += `💊 *Suplementación y Posología:*\n${supplements}\n\n`;
+            text += `📅 *Próxima Revisión:* ${followup}\n\n`;
+            text += `¡Cualquier duda estamos a su disposición!`;
+
+            const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Guardado local
+        function saveLocalState() {
+            appState.patient = {
+                name: document.getElementById('patient-name').value,
+                date: document.getElementById('patient-date').value,
+                age: document.getElementById('patient-age').value,
+                sex: document.getElementById('patient-sex').value,
+                phone: document.getElementById('patient-phone').value,
+                complaint: document.getElementById('patient-complaint').value
+            };
+            appState.rx = {
+                diet: document.getElementById('rx-diet').value,
+                supplements: document.getElementById('rx-supplements').value,
+                followup: document.getElementById('rx-followup').value
+            };
+            for(let b=1; b<=5; b++){
+                appState.notes[b] = document.getElementById(`notes-${b}`).value;
+            }
+            localStorage.setItem('mtc_kaizen_state', JSON.stringify(appState));
+        }
+
+        function loadLocalState() {
+            const saved = localStorage.getItem('mtc_kaizen_state');
+            if(!saved) return;
+            try {
+                const parsed = JSON.parse(saved);
+                if(parsed.patient) {
+                    document.getElementById('patient-name').value = parsed.patient.name || '';
+                    document.getElementById('patient-date').value = parsed.patient.date || '';
+                    document.getElementById('patient-age').value = parsed.patient.age || '';
+                    document.getElementById('patient-sex').value = parsed.patient.sex || '';
+                    document.getElementById('patient-phone').value = parsed.patient.phone || '';
+                    document.getElementById('patient-complaint').value = parsed.patient.complaint || '';
+                }
+                if(parsed.rx) {
+                    document.getElementById('rx-diet').value = parsed.rx.diet || '';
+                    document.getElementById('rx-supplements').value = parsed.rx.supplements || '';
+                    document.getElementById('rx-followup').value = parsed.rx.followup || '';
+                }
+            } catch(e){ console.error(e); }
+        }
+
+        function resetApp() {
+            if (confirm("¿Desea reiniciar el formulario y borrar todos los datos ingresados?")) {
+                localStorage.removeItem('mtc_kaizen_state');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
